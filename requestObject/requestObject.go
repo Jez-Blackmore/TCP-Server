@@ -39,6 +39,13 @@ func NewHandlerObj(c net.Conn) GlobalTCPObj {
 
 	/* 	fmt.Printf("1. command = %s\n", command) */
 
+	if string(command) == "bye" {
+		populatedGlobalTCPObj := GlobalTCPObj{
+			Command: string(command),
+		}
+
+		return populatedGlobalTCPObj
+	}
 	keyBytes := handleBytes(1, c)
 	keyBytesAsInt, err := strconv.Atoi(string(keyBytes[0]))
 
