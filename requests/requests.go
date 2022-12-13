@@ -9,7 +9,7 @@ func Put(key string, value string) string {
 
 	objString := store.MainStoreMain.PutRequest(key, value)
 
-	fmt.Print("Put")
+	/* fmt.Print("Put") */
 
 	return objString.Key
 }
