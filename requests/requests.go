@@ -11,14 +11,15 @@ func Put(key string, value string) string {
 
 	/* fmt.Print("Put") */
 
-	return objString.Key
+	return objString.Value
 }
 
 func Get(key string) string {
 
-	objString := store.MainStoreMain.GetRequest(key)
+	valueString := store.MainStoreMain.GetRequest(key)
 
-	return objString.Key
+	fmt.Print("Get: ", valueString)
+	return valueString
 
 }
 
@@ -26,8 +27,8 @@ func Delete(key string) string {
 
 	objString := store.MainStoreMain.DeleteRequest(key)
 
-	fmt.Print("Delete")
-	return objString.Key
+	fmt.Print("Delete: ", objString)
+	return objString.Value
 }
 
 func Bye() string {

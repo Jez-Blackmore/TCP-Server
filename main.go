@@ -11,8 +11,10 @@ import (
 func handleFetch(r requestObject.GlobalTCPObj) {
 	switch string(r.Command) {
 	case "put":
-		requests.Put(r.Key, r.Value)
-		fmt.Println("Put something")
+		valuseString := requests.Put(r.Key, r.Value)
+
+		fmt.Println("Value added: ", valuseString)
+
 	case "del":
 		requests.Delete(r.Key)
 		fmt.Println("Delete something")
@@ -41,6 +43,8 @@ func handler(c net.Conn) {
 func main() {
 
 	store.MainStoreMain = store.NewStoreMain()
+
+	go store.MainStoreMain.Monitor()
 
 	listener, err := net.Listen("tcp4", ":1234")
 	if err != nil {

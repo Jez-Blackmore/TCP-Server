@@ -6,8 +6,8 @@ type Key string
 
 type StoreMain struct {
 	key           map[string]StructValueObject
-	putChannel    chan PutChannel
-	deleteChannel chan DeleteChannel
+	PutChannel    chan PutChannel
+	DeleteChannel chan DeleteChannel
 }
 
 type PutChannel struct {
@@ -39,7 +39,9 @@ var (
 func NewStoreMain() StoreMain {
 
 	Store := StoreMain{
-		key: map[string]StructValueObject{},
+		key:           map[string]StructValueObject{},
+		PutChannel:    make(chan PutChannel),
+		DeleteChannel: make(chan DeleteChannel),
 	}
 
 	return Store
@@ -48,44 +50,57 @@ func NewStoreMain() StoreMain {
 func (s *StoreMain) Monitor() {
 	for {
 		select {
-		case putVal := <-s.putChannel:
+		case putVal := <-s.PutChannel:
 
-			putVal.ResponseChannelPut <- ResponseChannel{Value: "1", key: "1"}
+			s.key[string(putVal.key)] = StructValueObject{Value: putVal.Value, Key: string(putVal.key)}
 
-		case deleteVal := <-s.deleteChannel:
+			/* fmt.Print("key: ", putVal.key, " value: ", putVal.Value, " object ", s.key[string(putVal.key)]) */
+
+			putVal.ResponseChannelPut <- ResponseChannel{Value: s.key[string(putVal.key)].Value, key: Key(s.key[string(putVal.key)].Key)}
+
+		case deleteVal := <-s.DeleteChannel:
+
+			delete(s.key, string(deleteVal.key))
 
 			deleteVal.ResponseChannelDelete <- ResponseChannel{Value: "1", key: "1"}
 		}
 	}
 }
 
-func (s *StoreMain) GetRequest(key string) StructValueObject {
+func (s *StoreMain) GetRequest(key string) string {
+
+	var valueToShow string
+
+	for keyVal, value := range s.key {
+		if string(keyVal) == key {
+			valueToShow = value.Value
+		}
+	}
 
 	fmt.Printf("%v", s.key[key])
-	return s.key[key]
+	return valueToShow
+}
+
+func (s *StoreMain) PutRequest(key string, value string) ResponseChannel {
+
+	responseChan := make(chan ResponseChannel)
+
+	s.PutChannel <- PutChannel{key: Key(key), Value: value, ResponseChannelPut: responseChan}
+
+	confirmObj := <-responseChan
+
+	return confirmObj
 
 }
 
-func (s *StoreMain) PutRequest(key string, value string) StructValueObject {
+func (s *StoreMain) DeleteRequest(keyVal string) ResponseChannel {
 
-	s.putChannel <- PutChannel{key: "1", Value: "1"}
+	responseChan := make(chan ResponseChannel)
 
-	confirm := <-s.putChannel
+	s.DeleteChannel <- DeleteChannel{key: Key(keyVal), ResponseChannelDelete: responseChan}
 
-	fmt.Printf("%v ", confirm)
+	confirm := <-responseChan
 
-	return s.key[key]
-
-}
-
-func (s *StoreMain) DeleteRequest(key string) StructValueObject {
-
-	s.deleteChannel <- DeleteChannel{key: "1", Value: "1"}
-
-	confirm := <-s.deleteChannel
-
-	fmt.Printf("%v ", confirm)
-
-	return s.key[key]
+	return confirm
 
 }
