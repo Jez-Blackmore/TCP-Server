@@ -55,7 +55,8 @@ func NewHandlerObj(c net.Conn) GlobalTCPObj {
 	/* 	fmt.Printf("2. key as int = %v\n", keyBytesAsInt) */
 
 	keyByteSizeStringOfDigits := handleBytes(keyBytesAsInt, c)
-	byteSizeStringOfDigitsAsInt, err := strconv.Atoi(string(keyByteSizeStringOfDigits[0]))
+
+	byteSizeStringOfDigitsAsInt, err := strconv.Atoi(string(keyByteSizeStringOfDigits))
 
 	if err != nil {
 		fmt.Println("some kind of error")
@@ -65,6 +66,7 @@ func NewHandlerObj(c net.Conn) GlobalTCPObj {
 	AcutalKeyValue := handleBytes(byteSizeStringOfDigitsAsInt, c)
 
 	AcutalKeyValueAsString := string(AcutalKeyValue)
+
 	/* fmt.Print("test: ", AcutalKeyValueAsString) */
 
 	var valueByteSizeStringOfDigitsAsInt int
@@ -81,7 +83,8 @@ func NewHandlerObj(c net.Conn) GlobalTCPObj {
 		}
 
 		valueByteSizeStringOfDigits := handleBytes(valueBytesAsInt, c)
-		valueByteSizeStringOfDigitsAsInt, err = strconv.Atoi(string(valueByteSizeStringOfDigits[0]))
+
+		valueByteSizeStringOfDigitsAsInt, err = strconv.Atoi(string(valueByteSizeStringOfDigits))
 
 		if err != nil {
 			fmt.Println("some kind of error")
