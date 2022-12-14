@@ -1,6 +1,9 @@
 package store
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 type Key string
 
@@ -93,14 +96,26 @@ func (s *StoreMain) PutRequest(key string, value string) ResponseChannel {
 
 }
 
-func (s *StoreMain) DeleteRequest(keyVal string) ResponseChannel {
+func (s *StoreMain) DeleteRequest(key string) (ResponseChannel, error) {
+
+	var valueToShow string
+
+	for keyVal, value := range s.key {
+		if string(keyVal) == key {
+			valueToShow = value.Value
+		}
+	}
+
+	if valueToShow == "" {
+		return ResponseChannel{key: "", Value: ""}, errors.New("Not found")
+	}
 
 	responseChan := make(chan ResponseChannel)
 
-	s.DeleteChannel <- DeleteChannel{key: Key(keyVal), ResponseChannelDelete: responseChan}
+	s.DeleteChannel <- DeleteChannel{key: Key(key), ResponseChannelDelete: responseChan}
 
 	confirm := <-responseChan
 
-	return confirm
+	return confirm, nil
 
 }

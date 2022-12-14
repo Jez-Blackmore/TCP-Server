@@ -25,7 +25,12 @@ func Get(key string) string {
 
 func Delete(key string) string {
 
-	objString := store.MainStoreMain.DeleteRequest(key)
+	objString, err := store.MainStoreMain.DeleteRequest(key)
+
+	if err != nil {
+		fmt.Printf("%v\n", err)
+		return ""
+	}
 
 	fmt.Print("Delete: ", objString)
 	return objString.Value
