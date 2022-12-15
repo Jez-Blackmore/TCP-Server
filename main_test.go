@@ -1,7 +1,11 @@
-package main_test
+package main
 
 import "fmt"
 
-func ExampleAdd() {
+func TestHandler() {
+	fmt.Print("test")
+}
+
+func TestHandleFetch() {
 	fmt.Print("test")
 }

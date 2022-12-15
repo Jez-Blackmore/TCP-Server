@@ -9,7 +9,7 @@ import (
 	"week3Project-TCP/store"
 )
 
-func handleFetch(r requestObject.GlobalTCPObj) (string, error) {
+func HandleFetch(r requestObject.GlobalTCPObj) (string, error) {
 	switch string(r.Command) {
 	case "put":
 		valuseString := requests.Put(r)
@@ -43,7 +43,7 @@ func handleFetch(r requestObject.GlobalTCPObj) (string, error) {
 		return valuseString, nil
 
 	case "bye":
-		requests.Bye()
+		/* requests.Bye() */
 		fmt.Println("Say good bye")
 		return "bye", nil
 	default:
@@ -52,29 +52,30 @@ func handleFetch(r requestObject.GlobalTCPObj) (string, error) {
 	}
 }
 
-func handler(c net.Conn) {
+func Handler(c net.Conn) {
 
 	defer c.Close()
 
 	for {
 		fetchObj, err := requestObject.NewHandlerObj(c)
 
-		if err != nil {
+		if fetchObj.Command == "EOF" {
+			break
+		} else if err != nil {
 			c.Write([]byte("err"))
 		} else {
-			confirm, err := handleFetch(fetchObj)
+			confirm, err := HandleFetch(fetchObj)
 
 			if err != nil {
 				c.Write([]byte("nil")) // nil
 			} else if confirm == "bye" {
-				c.Write([]byte("bye"))
+				c.Close()
+				break
 			} else {
-
 				// Send a response back to person contacting us.
 				c.Write([]byte(confirm)) // ack
 			}
 		}
-
 	}
 
 	// Close the connection when you're done with it.
@@ -98,6 +99,6 @@ func main() {
 			break
 		}
 
-		go handler(c)
+		go Handler(c)
 	}
 }
