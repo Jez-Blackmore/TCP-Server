@@ -1,6 +1,7 @@
 package requestObject
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"strconv"
@@ -8,11 +9,11 @@ import (
 
 type GlobalTCPObj struct {
 	Command       string
-	keyBytes      int
-	keyByteSize   int
+	KeyBytes      int
+	KeyByteSize   int
 	Key           string
-	valueBytes    int
-	valueByteSize int
+	ValueBytes    int
+	ValueByteSize int
 	Value         string
 }
 
@@ -33,24 +34,24 @@ func handleBytes(num int, c net.Conn) []byte {
 	return buf
 }
 
-func NewHandlerObj(c net.Conn) GlobalTCPObj {
-
+func NewHandlerObj(c net.Conn) (GlobalTCPObj, error) {
+	fmt.Println("RAAAAAAAAAAAAAANNNNNNNNNNNNNN")
 	command := handleBytes(3, c)
 
 	/* 	fmt.Printf("1. command = %s\n", command) */
-
+	fmt.Print("command === ", string(command)+"end")
 	if string(command) == "bye" {
 		populatedGlobalTCPObj := GlobalTCPObj{
 			Command: string(command),
 		}
 
-		return populatedGlobalTCPObj
+		return populatedGlobalTCPObj, nil
 	}
 	keyBytes := handleBytes(1, c)
 	keyBytesAsInt, err := strconv.Atoi(string(keyBytes[0]))
 
 	if err != nil {
-		fmt.Println("some kind of error")
+		fmt.Println("1error : ", err)
 	}
 	/* 	fmt.Printf("2. key as int = %v\n", keyBytesAsInt) */
 
@@ -60,6 +61,7 @@ func NewHandlerObj(c net.Conn) GlobalTCPObj {
 
 	if err != nil {
 		fmt.Println("some kind of error")
+		return GlobalTCPObj{}, errors.New("Not numeric values")
 	}
 
 	/* fmt.Printf("3. key as int = %v\n", byteSizeStringOfDigitsAsInt) */
@@ -76,18 +78,20 @@ func NewHandlerObj(c net.Conn) GlobalTCPObj {
 	if string(command) == "put" {
 
 		valueBytes := handleBytes(1, c)
-		valueBytesAsInt, err := strconv.Atoi(string(valueBytes[0]))
+
+		fmt.Printf("%v ", string(valueBytes[0]))
+		valueBytesAsInt, err = strconv.Atoi(string(valueBytes[0]))
 
 		if err != nil {
-			fmt.Println("some kind of error")
+			fmt.Println("2some kind of error", err)
 		}
 
 		valueByteSizeStringOfDigits := handleBytes(valueBytesAsInt, c)
-
+		print("22222what is this ==== " + fmt.Sprint(string(valueByteSizeStringOfDigits)) + "end")
 		valueByteSizeStringOfDigitsAsInt, err = strconv.Atoi(string(valueByteSizeStringOfDigits))
 
 		if err != nil {
-			fmt.Println("some kind of error")
+			fmt.Println("3some kind of error", err)
 		}
 
 		AcutalValue := handleBytes(valueByteSizeStringOfDigitsAsInt, c)
@@ -96,13 +100,14 @@ func NewHandlerObj(c net.Conn) GlobalTCPObj {
 
 	populatedGlobalTCPObj := GlobalTCPObj{
 		Command:       string(command),
-		keyBytes:      keyBytesAsInt,
-		keyByteSize:   byteSizeStringOfDigitsAsInt,
+		KeyBytes:      keyBytesAsInt,
+		KeyByteSize:   byteSizeStringOfDigitsAsInt,
 		Key:           AcutalKeyValueAsString,
-		valueBytes:    valueBytesAsInt,
-		valueByteSize: valueByteSizeStringOfDigitsAsInt,
+		ValueBytes:    valueBytesAsInt,
+		ValueByteSize: valueByteSizeStringOfDigitsAsInt,
 		Value:         AcutalValueAsString,
 	}
 
-	return populatedGlobalTCPObj
+	fmt.Print("OBJ ==== ", populatedGlobalTCPObj)
+	return populatedGlobalTCPObj, nil
 }

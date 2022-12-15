@@ -2,21 +2,22 @@ package requests
 
 import (
 	"fmt"
+	"week3Project-TCP/requestObject"
 	"week3Project-TCP/store"
 )
 
-func Put(key string, value string) string {
+func Put(r requestObject.GlobalTCPObj) string {
 
-	objString := store.MainStoreMain.PutRequest(key, value)
+	objString := store.MainStoreMain.PutRequest(r)
 
 	/* fmt.Print("Put") */
 
 	return objString.Value
 }
 
-func Get(key string) string {
+func Get(key string, r requestObject.GlobalTCPObj) string {
 
-	valueString := store.MainStoreMain.GetRequest(key)
+	valueString := store.MainStoreMain.GetRequest(key, r)
 
 	fmt.Print("Get: ", valueString)
 	return valueString

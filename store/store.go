@@ -3,6 +3,7 @@ package store
 import (
 	"errors"
 	"fmt"
+	"week3Project-TCP/requestObject"
 )
 
 type Key string
@@ -14,8 +15,7 @@ type StoreMain struct {
 }
 
 type PutChannel struct {
-	Value              string `json:"value"`
-	key                Key
+	RequestObj         StructValueObject `json:"requestObj "`
 	ResponseChannelPut chan ResponseChannel
 }
 
@@ -31,8 +31,15 @@ type ResponseChannel struct {
 }
 
 type StructValueObject struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
+	Command string
+	Key     string `json:"key"`
+	Value   string `json:"value"`
+
+	KeyBytes    int `json:"keyBytes"`
+	KeyByteSize int `json:"keyBytesSize"`
+
+	ValueBytes    int `json:"valueBytes"`
+	ValueByteSize int `json:"valueByteSize"`
 }
 
 var (
@@ -55,11 +62,9 @@ func (s *StoreMain) Monitor() {
 		select {
 		case putVal := <-s.PutChannel:
 
-			s.key[string(putVal.key)] = StructValueObject{Value: putVal.Value, Key: string(putVal.key)}
+			s.key[string(putVal.RequestObj.Key)] = StructValueObject{Value: putVal.RequestObj.Value, Key: string(putVal.RequestObj.Key), KeyBytes: putVal.RequestObj.KeyBytes, KeyByteSize: putVal.RequestObj.KeyByteSize, ValueBytes: putVal.RequestObj.ValueBytes, ValueByteSize: putVal.RequestObj.ValueByteSize}
 
-			/* fmt.Print("key: ", putVal.key, " value: ", putVal.Value, " object ", s.key[string(putVal.key)]) */
-
-			putVal.ResponseChannelPut <- ResponseChannel{Value: s.key[string(putVal.key)].Value, key: Key(s.key[string(putVal.key)].Key)}
+			putVal.ResponseChannelPut <- ResponseChannel{Value: s.key[string(putVal.RequestObj.Key)].Value, key: Key(s.key[string(putVal.RequestObj.Key)].Key)}
 
 		case deleteVal := <-s.DeleteChannel:
 
@@ -70,13 +75,13 @@ func (s *StoreMain) Monitor() {
 	}
 }
 
-func (s *StoreMain) GetRequest(key string) string {
+func (s *StoreMain) GetRequest(key string, r requestObject.GlobalTCPObj) string {
 
 	var valueToShow string
 
 	for keyVal, value := range s.key {
 		if string(keyVal) == key {
-			valueToShow = value.Value
+			valueToShow = "val" + fmt.Sprint(value.ValueBytes) + fmt.Sprint(value.ValueByteSize) + value.Value
 		}
 	}
 
@@ -84,11 +89,11 @@ func (s *StoreMain) GetRequest(key string) string {
 	return valueToShow
 }
 
-func (s *StoreMain) PutRequest(key string, value string) ResponseChannel {
+func (s *StoreMain) PutRequest(r requestObject.GlobalTCPObj) ResponseChannel {
 
 	responseChan := make(chan ResponseChannel)
 
-	s.PutChannel <- PutChannel{key: Key(key), Value: value, ResponseChannelPut: responseChan}
+	s.PutChannel <- PutChannel{RequestObj: StructValueObject{Key: r.Key, Value: r.Value, KeyBytes: r.KeyBytes, KeyByteSize: r.KeyByteSize, ValueBytes: r.ValueBytes, ValueByteSize: r.ValueByteSize}, ResponseChannelPut: responseChan}
 
 	confirmObj := <-responseChan
 

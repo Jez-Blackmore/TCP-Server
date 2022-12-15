@@ -12,7 +12,7 @@ import (
 func handleFetch(r requestObject.GlobalTCPObj) (string, error) {
 	switch string(r.Command) {
 	case "put":
-		valuseString := requests.Put(r.Key, r.Value)
+		valuseString := requests.Put(r)
 
 		if valuseString == "" {
 			return "", errors.New("Not found")
@@ -25,26 +25,27 @@ func handleFetch(r requestObject.GlobalTCPObj) (string, error) {
 		valuseString := requests.Delete(r.Key)
 
 		if valuseString == "" {
-			return "", errors.New("Not found")
+			fmt.Println("Value is not valid: ")
+			return "ack", nil
 		}
 
 		fmt.Println("Value deleted: ", valuseString)
 		return "ack", nil
 
 	case "get":
-		valuseString := requests.Get(r.Key)
+		valuseString := requests.Get(r.Key, r)
 
 		if valuseString == "" {
 			return "", errors.New("Not found")
 		}
 
 		fmt.Println("Get value: ", valuseString)
-		return "ack", nil
+		return valuseString, nil
 
 	case "bye":
 		requests.Bye()
 		fmt.Println("Say good bye")
-		return "ack", nil
+		return "bye", nil
 	default:
 		fmt.Println("something default")
 		return "ack", nil
@@ -52,19 +53,32 @@ func handleFetch(r requestObject.GlobalTCPObj) (string, error) {
 }
 
 func handler(c net.Conn) {
-	fetchObj := requestObject.NewHandlerObj(c)
 
-	confirm, err := handleFetch(fetchObj)
+	defer c.Close()
 
-	if err != nil {
-		c.Write([]byte("nil"))
-	} else {
-		// Send a response back to person contacting us.
-		c.Write([]byte(confirm))
+	for {
+		fetchObj, err := requestObject.NewHandlerObj(c)
+
+		if err != nil {
+			c.Write([]byte("err"))
+		} else {
+			confirm, err := handleFetch(fetchObj)
+
+			if err != nil {
+				c.Write([]byte("nil")) // nil
+			} else if confirm == "bye" {
+				c.Write([]byte("bye"))
+			} else {
+
+				// Send a response back to person contacting us.
+				c.Write([]byte(confirm)) // ack
+			}
+		}
+
 	}
 
 	// Close the connection when you're done with it.
-	c.Close()
+
 }
 
 func main() {
